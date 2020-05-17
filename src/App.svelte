@@ -40,6 +40,7 @@ import meetup from './Meetups/meetup-store.js';
 	//    isFav:false
   //   }
   // ];
+  
 
   fetch("https://august-balancer-265810.firebaseio.com/meetups.json")
     .then(res => {
