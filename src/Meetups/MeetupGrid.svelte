@@ -15,7 +15,6 @@
   let favsOnly = false;
 
   $: filteredMeetups = favsOnly ? meetups.filter(m => m.isFav) : meetups;
-
   function setFilter(event) {
     favsOnly = event.detail === 1;
   }

@@ -12,9 +12,28 @@
     export let address;
     export let email;
     export let isFav;
+
+  let isLoading = false;
     const dispatcher = createEventDispatcher();
   function toogelFav(id){
-meetup.toggleFavorite(id);
+
+isLoading = true;
+    fetch(`https://august-balancer-265810.firebaseio.com/meetups/${id}.json`, {
+      method: "PATCH",
+      body: JSON.stringify({ isFav: !isFav }),
+      headers: { "Content-Type": "application/json" }
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("An error occurred, please try again!");
+        }
+        isLoading = false;
+     meetup.toggleFavorite(id);
+      })
+      .catch(err => {
+        isLoading = false;
+        console.log(err);
+      });
   }
 </script>
 <style>

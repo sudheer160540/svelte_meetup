@@ -53,10 +53,44 @@
     };
    // meetup.addMeetup(newMeetUp);
     if(id){
-     meetup.updateMeetup(id,newMeetUp);
+       fetch(`https://august-balancer-265810.firebaseio.com/meetups/${id}.json`, {
+        method: "PATCH",
+        body: JSON.stringify(newMeetUp),
+        headers: { "Content-Type": "application/json" }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("An error occurred, please try again!");
+          }
+          meetup.updateMeetup(id,newMeetUp);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    
     }else{
-     meetup.addMeetup(newMeetUp);
-
+     //meetup.addMeetup(newMeetUp);
+  fetch("https://august-balancer-265810.firebaseio.com/meetups.json", {
+        method: "POST",
+        body: JSON.stringify({ ...newMeetUp, isFav: false }),
+        headers: { "Content-Type": "application/json" }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("An error occurred, please try again!");
+          }
+          return res.json();
+        })
+        .then(data => {
+          meetup.addMeetup({
+            ...newMeetUp,
+            isFavorite: false,
+            id: data.name
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
     dispatch("save");
   }
@@ -65,9 +99,20 @@
     dispatch("cancel");
   }
   function deleteItem(){
-    debugger
-    meetup.removeMeetup(id);
-    dispatch("cancel");
+    
+
+    fetch(`https://august-balancer-265810.firebaseio.com/meetups/${id}.json`, {
+      method: "DELETE"
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("An error occurred, please try again!");
+        }
+         meetup.removeMeetup(id);
+      })
+      .catch(err => console.log(err));
+    dispatch("save");
+ 
   }
 </script>
 
@@ -79,7 +124,7 @@
   }
 </style>
 
-<Modal title="Edit Meetup Data" on:cancel>
+<Modal title="Meetup Data" on:cancel>
   <form on:submit|preventDefault={submitForm}>
     <TextInput
       id="title"

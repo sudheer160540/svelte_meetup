@@ -7,10 +7,14 @@ import meetup from './Meetups/meetup-store.js';
   import Button from './UI/Button.svelte';
   import Editmeetup from './Meetups/EditMeetup.svelte';
   import MeetUpDetails from './Meetups/MeetupDetails.svelte';
+    import LoadingSpinner from "./UI/LoadinSpinner.svelte";
+      import Error from "./UI/Error.svelte";
   let editMode;
   let page= 'overview';
   let editId;
   let pageDetails = {};
+    let isLoading = true;
+      let error;
   // let meetups = [
   //   { 
   //     id: "m1",
@@ -36,6 +40,32 @@ import meetup from './Meetups/meetup-store.js';
 	//    isFav:false
   //   }
   // ];
+
+  fetch("https://august-balancer-265810.firebaseio.com/meetups.json")
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Fetching meetups failed, please try again later!");
+      }
+      return res.json();
+    })
+    .then(data => {
+      const loadedMeetups = [];
+      for (const key in data) {
+        loadedMeetups.push({
+          ...data[key],
+          id: key
+        });
+      }
+      setTimeout(() => {
+        isLoading = false;
+        meetup.setMeetups(loadedMeetups.reverse());
+      }, 1000);
+    })
+    .catch(err => {
+       error = err;
+      isLoading = false;
+      console.log(err);
+    });
   function saveMeetup(event){
      //id: Math.random().toString(),
   //  const addData={
@@ -77,6 +107,10 @@ import meetup from './Meetups/meetup-store.js';
     editMode = null;
     editId = null;
   }
+
+  function clearError() {
+    error = null;
+  }
 </script>
 
 <style>
@@ -90,20 +124,26 @@ import meetup from './Meetups/meetup-store.js';
     margin: 1rem;
   }
 </style>
-
+{#if error}
+  <Error message={error.message} on:cancel={clearError} />
+{/if}
 <Header />
 <main>
 {#if page === 'overview'}
 <div class="meetup-controls">
 
-    <Button  on:click={() => (editMode = 'edit')} >New Meetup</Button>
+    <Button  on:click={() => (editMode = 'edit')} >Add New Meetup</Button>
 </div>
 
 {#if editMode === 'edit'}
 <Editmeetup id={editId} on:save={saveMeetup} on:cancel={cancelEdit}/>
 {/if}
+{#if isLoading}
+      <LoadingSpinner />
+    {:else}
 <MeetupGrid meetups ={$meetup} on:showdetails={showDetails} on:edit={startEdit}
 />
+{/if}
 {:else}
 <MeetUpDetails id={pageDetails.id} on:close={overview}/>
 <!-- <MeetupGrid meetups ={$meetup}
